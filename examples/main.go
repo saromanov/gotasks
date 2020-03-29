@@ -21,6 +21,6 @@ func sub(ctx context.Context) error {
 }
 
 func main() {
-	tasks := gotasks.GoTasks{}
+	tasks := gotasks.New()
 	tasks.Add("add", add)
 }
