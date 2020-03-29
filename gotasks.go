@@ -38,7 +38,7 @@ func New() *GoTasks {
 }
 
 // Add provides addding of the task
-func (g *GoTasks) Add(name string, f func(context.Context) error) (string, error) {
+func (g *GoTasks) Add(name string, f func(*Entry) error) (string, error) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 	g.tasks[name] = NewTask(name, f)
@@ -56,7 +56,7 @@ func (g *GoTasks) Exec(name string, opt ...ExecOption) error {
 	for _, o := range opt {
 		o(options)
 	}
-	go task.Method(context.Background())
+	go task.Method(&Entry{})
 	return nil
 }
 
