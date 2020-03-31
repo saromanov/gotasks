@@ -54,24 +54,32 @@ func (g *GoTasks) Exec(name string, opt ...ExecOption) error {
 		return errTaskNotFound
 	}
 
-	options := &Option{}
-	for _, o := range opt {
-		o(options)
-	}
-	singleExec(task, options)
+	options := func(o []ExecOption) *Option {
+		opts := &Option{}
+		for _, o := range opt {
+			o(opts)
+		}
+		return opts
+	}(opt)
+	ctx, cancel := makeContext(options)
+	defer cancel()
+	singleExec(ctx, task)
 	return nil
 }
 
-func singleExec(tas *Task, opt *Option) {
+func makeContext(opt *Option) (context.Context, context.CancelFunc) {
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	if opt.timeout == 0*time.Second {
+		return ctx, cancel
+	}
+	return context.WithTimeout(ctx, opt.timeout)
+}
+
+func singleExec(ctx context.Context, tas *Task) {
 	go func(t *Task) {
 		t.Method(&Entry{})
 	}(tas)
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	if opt.timeout != 0*time.Second {
-		ctx, cancel = context.WithTimeout(ctx, opt.timeout)
-	}
-	defer cancel()
 	select {
 	case <-ctx.Done():
 		fmt.Println(ctx.Err())
