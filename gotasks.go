@@ -41,8 +41,9 @@ func New() *GoTasks {
 func (g *GoTasks) Add(name string, f func(*Entry) error) (string, error) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
-	g.tasks[name] = NewTask(name, f)
-	return "", nil
+	t := NewTask(name, f)
+	g.tasks[name] = t
+	return t.GetID(), nil
 }
 
 // Exec provides execution of task

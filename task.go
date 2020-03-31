@@ -19,3 +19,8 @@ func NewTask(name string, method func(*Entry) error) *Task {
 		Method: method,
 	}
 }
+
+// GetID returns id of the task
+func (t *Task) GetID() string {
+	return t.ID
+}
