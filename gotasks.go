@@ -14,13 +14,15 @@ var errTaskNotFound = errors.New("task is not found")
 type ExecOption func(*Option)
 
 type Option struct {
-	timeout time.Duration
+	timeout    time.Duration
+	cancelFunc func(*Entry)
 }
 
 // WithTimeout defines option with specific timeput
-func WithTimeout(d time.Duration) ExecOption {
+func WithTimeout(d time.Duration, cancelFunc func(*Entry)) ExecOption {
 	return func(opt *Option) {
 		opt.timeout = d
+		opt.cancelFunc = cancelFunc
 	}
 }
 
@@ -76,12 +78,15 @@ func makeContext(opt *Option) (context.Context, context.CancelFunc) {
 	return context.WithTimeout(ctx, opt.timeout)
 }
 
-func singleExec(ctx context.Context, tas *Task) {
+func singleExec(ctx context.Context, tas *Task, opt *Option) {
 	go func(t *Task) {
 		t.Method(&Entry{})
 	}(tas)
 	select {
 	case <-ctx.Done():
+		if opt.cancelFunc != nil {
+			opt.cancelFunc(&Entry{Ctx: ctx})
+		}
 		fmt.Println(ctx.Err())
 		return
 	}
