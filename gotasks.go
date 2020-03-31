@@ -3,6 +3,7 @@ package gotasks
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 )
@@ -66,17 +67,14 @@ func singleExec(tas *Task, opt *Option) {
 		t.Method(&Entry{})
 	}(tas)
 	ctx := context.Background()
-	if opt.timeout.String() != "" {
-		ctx, _ = context.WithTimeout(ctx, opt.timeout)
+	ctx, cancel := context.WithCancel(ctx)
+	if opt.timeout != 0*time.Second {
+		ctx, cancel = context.WithTimeout(ctx, opt.timeout)
 	}
-	_, ok := ctx.Deadline()
-	if ok {
+	defer cancel()
+	select {
+	case <-ctx.Done():
+		fmt.Println(ctx.Err())
 		return
 	}
-	go func(c context.Context) error {
-		select {
-		case <-c.Done():
-			return c.Err()
-		}
-	}(ctx)
 }
