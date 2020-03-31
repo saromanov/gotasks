@@ -57,11 +57,26 @@ func (g *GoTasks) Exec(name string, opt ...ExecOption) error {
 	for _, o := range opt {
 		o(options)
 	}
-	go task.Method(&Entry{})
+	singleExec(task, options)
 	return nil
 }
 
-func singleExec() {
+func singleExec(tas *Task, opt *Option) {
+	go func(t *Task) {
+		t.Method(&Entry{})
+	}(tas)
 	ctx := context.Background()
-	ctx, _ = context.WithTimeout(ctx, 100*time.Millisecond)
+	if opt.timeout.String() != "" {
+		ctx, _ = context.WithTimeout(ctx, opt.timeout)
+	}
+	_, ok := ctx.Deadline()
+	if ok {
+		return
+	}
+	go func(c context.Context) error {
+		select {
+		case <-c.Done():
+			return c.Err()
+		}
+	}(ctx)
 }
