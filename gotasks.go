@@ -15,8 +15,9 @@ var errTaskNotFound = errors.New("task is not found")
 type ExecOption func(*Option)
 
 type Option struct {
-	timeout    time.Duration
-	cancelFunc func(*Entry)
+	timeout       time.Duration
+	cancelFunc    func(*Entry)
+	numGoroutines int
 }
 
 // WithTimeout defines option with specific timeput
@@ -24,6 +25,14 @@ func WithTimeout(d time.Duration, cancelFunc func(*Entry)) ExecOption {
 	return func(opt *Option) {
 		opt.timeout = d
 		opt.cancelFunc = cancelFunc
+	}
+}
+
+// WithPool option defines setting of goroutine pool
+// to the execution
+func WithPool(num int) ExecOption {
+	return func(opt *Option) {
+		opt.numGoroutines = num
 	}
 }
 
