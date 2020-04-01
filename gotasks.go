@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -28,8 +29,9 @@ func WithTimeout(d time.Duration, cancelFunc func(*Entry)) ExecOption {
 
 // GoTasks provides implementation of tasks
 type GoTasks struct {
-	mu    *sync.RWMutex
-	tasks map[string]*Task
+	mu      *sync.RWMutex
+	tasks   map[string]*Task
+	running int32
 }
 
 // New provides creating of the tasks instance
@@ -47,6 +49,11 @@ func (g *GoTasks) Add(name string, f func(*Entry) error) (string, error) {
 	t := NewTask(name, f)
 	g.tasks[name] = t
 	return t.GetID(), nil
+}
+
+// Running returns current runnign tasks
+func (g *GoTasks) Running() int32 {
+	return atomic.LoadInt32(&g.running)
 }
 
 // Exec provides execution of task
