@@ -65,7 +65,7 @@ func (g *GoTasks) Exec(name string, opt ...ExecOption) error {
 	}(opt)
 	ctx, cancel := makeContext(options)
 	defer cancel()
-	singleExec(ctx, task)
+	singleExec(ctx, task, options)
 	return nil
 }
 
@@ -86,6 +86,7 @@ func singleExec(ctx context.Context, tas *Task, opt *Option) {
 	case <-ctx.Done():
 		if opt.cancelFunc != nil {
 			opt.cancelFunc(&Entry{Ctx: ctx})
+			return
 		}
 		fmt.Println(ctx.Err())
 		return
