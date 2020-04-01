@@ -1,6 +1,8 @@
 package gotasks
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // poolExec provides execution of the task on the pool
 // of goroutines
@@ -13,8 +15,7 @@ func poolExec(num int, t *Task) error {
 	}
 	request, _ := <-workReq
 	fmt.Println("FAIN")
-	request.jobChan <- "A"
-	fmt.Println("FAIN")
+	request.jobChan <- *t
 	fmt.Println("FAIN")
 	return nil
 }

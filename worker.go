@@ -3,7 +3,7 @@ package gotasks
 import "fmt"
 
 type workRequest struct {
-	jobChan       chan<- interface{}
+	jobChan       chan<- Task
 	retChan       <-chan interface{}
 	payload       interface{}
 	interruptFunc func()
@@ -27,12 +27,11 @@ func newWorker(t *Task, reqChan chan<- workRequest) *worker {
 }
 
 func (w *worker) run() {
-	jobChan, retChan := make(chan interface{}), make(<-chan interface{})
+	jobChan, retChan := make(chan Task), make(<-chan interface{})
 	defer func() {
 		//close(retChan)
 		close(w.closedChan)
 	}()
-
 	for {
 		select {
 		case w.reqChan <- workRequest{
@@ -41,8 +40,8 @@ func (w *worker) run() {
 		}:
 			select {
 			case data := <-jobChan:
-				fmt.Println("WORK REQYST: ", data)
-				return
+				fmt.Println("WORK REQYST: ", data.Method(&Entry{}))
+
 			}
 		case <-w.closeChan:
 			return
