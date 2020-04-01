@@ -4,6 +4,9 @@ package gotasks
 // of goroutines
 func poolExec(num int, t *Task) error {
 	w := newWorker(t)
+	reqChan := make(chan workRequest)
+	request := <-reqChan
+	request.jobChan <- "a"
 	w.run()
-	return nil	
+	return nil
 }
