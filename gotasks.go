@@ -18,6 +18,7 @@ type Option struct {
 	timeout       time.Duration
 	cancelFunc    func(*Entry)
 	numGoroutines int
+	usePool       bool
 }
 
 // WithTimeout defines option with specific timeput
@@ -33,6 +34,7 @@ func WithTimeout(d time.Duration, cancelFunc func(*Entry)) ExecOption {
 func WithPool(num int) ExecOption {
 	return func(opt *Option) {
 		opt.numGoroutines = num
+		opt.usePool = true
 	}
 }
 
@@ -81,6 +83,10 @@ func (g *GoTasks) Exec(name string, opt ...ExecOption) error {
 	}(opt)
 	ctx, cancel := makeContext(options)
 	defer cancel()
+	if options.usePool {
+		poolExec(options.numGoroutines, task)
+		return nil
+	}
 	singleExec(ctx, task, options)
 	return nil
 }
