@@ -38,6 +38,7 @@ func (w *worker) run() {
 			jobChan: jobChan,
 			retChan: retChan,
 		}:
+			fmt.Println("AAA")
 			select {
 			case data := <-jobChan:
 				fmt.Println("WORK REQYST: ", data.Method(&Entry{}))
